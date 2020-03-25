@@ -17,7 +17,7 @@
 #include "raft_private.h"
 #include "raft_log.h"
 
-#define INITIAL_CAPACITY 10
+#define INITIAL_CAPACITY 1<<30
 
 typedef struct
 {
@@ -54,6 +54,7 @@ static int __ensurecapacity(log_private_t * me)
     if (me->count < me->size)
         return 0;
 
+    assert(0);
     temp = (raft_entry_t*)__raft_calloc(1, sizeof(raft_entry_t) * me->size * 2);
     if (!temp)
         return RAFT_ERR_NOMEM;

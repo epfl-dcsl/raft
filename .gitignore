@@ -1,5 +1,7 @@
 *.o
 *.gcno
+*.gcda
+*.swp
 *~
-libcraft.so
-libcraft.a
+libraft.so
+libraft.a

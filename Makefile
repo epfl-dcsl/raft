@@ -13,6 +13,14 @@ CFLAGS += -Iinclude -Werror -Werror=return-type -Werror=uninitialized -Wcast-ali
 
 UNAME := $(shell uname)
 
+ifeq ($(SWITCH_AGG), 1)
+    CFLAGS += -DSWITCH_AGG
+endif
+
+ifeq ($(VIEW_CHANGE_EXP), 1)
+    CFLAGS += -DVIEW_CHANGE_EXP
+endif
+
 ifeq ($(UNAME), Darwin)
 ASANFLAGS = -fsanitize=address
 SHAREDFLAGS = -dynamiclib

@@ -138,10 +138,22 @@ raft_index_t raft_get_commit_idx(raft_server_t* me_)
 void raft_set_state(raft_server_t* me_, int state)
 {
     raft_server_private_t* me = (raft_server_private_t*)me_;
+    me->state = state;
     /* if became the leader, then update the current leader entry */
     if (state == RAFT_STATE_LEADER)
+    {
         me->current_leader = me->node;
-    me->state = state;
+        if (me->cb.became_leader)
+        {
+            me->cb.became_leader(me_, me->udata);
+        }
+    } else if (state == RAFT_STATE_FOLLOWER)
+    {
+        if (me->cb.became_follower)
+        {
+            me->cb.became_follower(me_, me->udata);
+        }
+    }
 }
 
 int raft_get_state(raft_server_t* me_)

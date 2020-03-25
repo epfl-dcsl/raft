@@ -20,6 +20,7 @@ typedef enum {
     RAFT_ERR_NEEDS_SNAPSHOT=-6,
     RAFT_ERR_SNAPSHOT_IN_PROGRESS=-7,
     RAFT_ERR_SNAPSHOT_ALREADY_LOADED=-8,
+	RAFT_ERR_DRIFTED=-42,
     RAFT_ERR_LAST=-100,
 } raft_error_e;
 
@@ -79,9 +80,21 @@ typedef enum {
      * are higher than RAFT_LOGTYPE_NUM.
      */
     RAFT_LOGTYPE_NUM=100,
+    /**
+     * Regular log type without side-effects
+	 * Only the replier is supposed to run this
+     */
+    RAFT_LOGTYPE_NORMAL_NO_SIDE_EFFECTS,
 } raft_logtype_e;
 
-typedef struct
+typedef enum {
+	AE_FAILURE = 0,
+	AE_SUCCESS,
+	AE_PARTIAL_SUCCESS_MISSING,
+	AE_SUCCESS_NEED_MORE,
+} ae_rep_ret_types;
+
+typedef struct __attribute__((packed))
 {
     void *buf;
 
@@ -89,7 +102,7 @@ typedef struct
 } raft_entry_data_t;
 
 /** Entry that is stored in the server's entry log. */
-typedef struct
+typedef struct __attribute__((packed))
 {
     /** the entry's term at the point it was created */
     raft_term_t term;
@@ -99,6 +112,8 @@ typedef struct
 
     /** type of entry */
     int type;
+
+	char replier;
 
     raft_entry_data_t data;
 } raft_entry_t;
@@ -364,6 +379,13 @@ typedef void (
     raft_membership_e type
     );
 
+typedef void (
+*func_role_change_event_f
+)   (
+    raft_server_t* raft,
+    void *user_data
+    );
+
 typedef struct
 {
     /** Callback for sending request vote messages */
@@ -426,6 +448,9 @@ typedef struct
     /** Callback for catching debugging log messages
      * This callback is optional */
     func_log_f log;
+
+    func_role_change_event_f became_leader;
+    func_role_change_event_f became_follower;
 } raft_cbs_t;
 
 typedef struct
@@ -954,4 +979,7 @@ void raft_node_set_addition_committed(raft_node_t* me_, int committed);
  * @return 1 if a voting change is in progress */
 int raft_voting_change_is_in_progress(raft_server_t* me_);
 
+#ifdef SWITCH_AGG
+void raft_set_phantom_udata(void *udata);
+#endif
 #endif /* RAFT_H_ */
